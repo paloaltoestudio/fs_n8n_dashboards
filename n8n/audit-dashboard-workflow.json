@@ -1,0 +1,249 @@
+{
+  "name": "Audit Dashboard - Sheet Data API",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "audit-data",
+        "authentication": "headerAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "ae341ae4-6985-4ae1-a556-fd9d7ff836a4",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [368, 208],
+      "webhookId": "audit-data",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "scPli2IKUSjh6yJG",
+          "name": "Dashboard Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "1JZczxKlBiUUG9TyQ1LRABmbbI1xlNfJuSyyszgfuuG0",
+          "mode": "list",
+          "cachedResultName": "firmaseguro_n8n_logs_test",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1JZczxKlBiUUG9TyQ1LRABmbbI1xlNfJuSyyszgfuuG0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "list",
+          "value": 1677314832,
+          "cachedResultName": "MIC",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1JZczxKlBiUUG9TyQ1LRABmbbI1xlNfJuSyyszgfuuG0/edit#gid=1677314832"
+        },
+        "options": {}
+      },
+      "id": "51506e35-2382-4601-81e3-a3b5efafeef5",
+      "name": "Read MIC",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [608, 80],
+      "credentials": {
+        "googleApi": {
+          "id": "W8aEJlW99kfaVWnw",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "1JZczxKlBiUUG9TyQ1LRABmbbI1xlNfJuSyyszgfuuG0",
+          "mode": "list",
+          "cachedResultName": "firmaseguro_n8n_logs_test",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1JZczxKlBiUUG9TyQ1LRABmbbI1xlNfJuSyyszgfuuG0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "waba_quality_checks"
+        },
+        "options": {}
+      },
+      "id": "6c706fe6-bc51-4c8f-b414-20a935afc086",
+      "name": "Read waba_quality_checks",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [608, 336],
+      "credentials": {
+        "googleApi": {
+          "id": "W8aEJlW99kfaVWnw",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f1",
+              "name": "_sheet",
+              "value": "MIC",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "a19f548e-9940-4505-a489-660b0b67a31e",
+      "name": "Tag MIC",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [848, 80]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f2",
+              "name": "_sheet",
+              "value": "waba_quality_checks",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "b29f548e-9940-4505-a489-660b0b67a32e",
+      "name": "Tag waba_quality_checks",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [848, 336]
+    },
+    {
+      "parameters": {
+        "mode": "append",
+        "options": {}
+      },
+      "id": "c39f548e-9940-4505-a489-660b0b67a33e",
+      "name": "Merge",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [1088, 208]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Group all rows from every sheet into one object keyed by sheet name:\n// { MIC: [...rows], waba_quality_checks: [...rows] }\nconst result = {};\nfor (const item of $input.all()) {\n  const { _sheet, ...row } = item.json;\n  if (!result[_sheet]) result[_sheet] = [];\n  result[_sheet].push(row);\n}\nreturn [{ json: result }];"
+      },
+      "id": "75b18d5b-7f86-4daf-b644-ca91abebd592",
+      "name": "Combine Sheets",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1328, 208]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "61e8f010-66be-4b6b-af95-0aa6190aedb9",
+      "name": "Respond OK",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1568, 208]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Read MIC",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Read waba_quality_checks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read MIC": {
+      "main": [
+        [
+          {
+            "node": "Tag MIC",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read waba_quality_checks": {
+      "main": [
+        [
+          {
+            "node": "Tag waba_quality_checks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tag MIC": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tag waba_quality_checks": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Combine Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combine Sheets": {
+      "main": [
+        [
+          {
+            "node": "Respond OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ec84849772dbdbdd8d298b02b0f440655689212c99ba93f27712260fb4c3ef86"
+  }
+}

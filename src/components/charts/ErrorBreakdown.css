@@ -1,0 +1,43 @@
+.error-breakdown {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.error-breakdown__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(80px, 160px) 28px;
+  align-items: center;
+  gap: 12px;
+}
+
+.error-breakdown__reason {
+  font-size: 13px;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.error-breakdown__bar-track {
+  height: 8px;
+  background: var(--surface-raised);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.error-breakdown__bar-fill {
+  height: 100%;
+  background: var(--status-critical);
+  border-radius: 999px;
+}
+
+.error-breakdown__count {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: right;
+}

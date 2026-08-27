@@ -1,0 +1,66 @@
+.waba-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.waba-timeline__item {
+  display: flex;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.waba-timeline__item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.waba-timeline__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+
+.waba-timeline__dot--good {
+  background: var(--status-good);
+}
+.waba-timeline__dot--warning {
+  background: var(--status-warning);
+}
+.waba-timeline__dot--serious {
+  background: var(--status-serious);
+}
+.waba-timeline__dot--critical {
+  background: var(--status-critical);
+}
+.waba-timeline__dot--muted {
+  background: var(--text-muted);
+}
+
+.waba-timeline__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.waba-timeline__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.waba-timeline__time {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.waba-timeline__action {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 6px;
+}

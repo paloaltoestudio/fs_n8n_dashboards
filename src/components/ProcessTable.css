@@ -1,0 +1,127 @@
+.process-table {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.process-table__head {
+  display: grid;
+  grid-template-columns: 140px 110px minmax(0, 1fr) 90px 150px;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--surface-raised);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.process-table__group {
+  border-top: 1px solid var(--border);
+}
+
+.process-table__group:first-child {
+  border-top: none;
+}
+
+.process-table__row {
+  all: unset;
+  display: grid;
+  grid-template-columns: 140px 110px minmax(0, 1fr) 90px 150px;
+  gap: 12px;
+  padding: 12px 16px;
+  width: 100%;
+  cursor: pointer;
+  font-size: 13px;
+  align-items: center;
+  transition: background 0.12s ease;
+  box-sizing: border-box;
+}
+
+.process-table__row:hover {
+  background: var(--surface-hover);
+}
+
+.process-table__id {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.process-table__chevron {
+  color: var(--text-muted);
+  display: inline-block;
+  transition: transform 0.15s ease;
+}
+
+.process-table__chevron.is-open {
+  transform: rotate(90deg);
+}
+
+.process-table__error {
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.process-table__retry-tag {
+  margin-left: 6px;
+  font-size: 10px;
+  color: var(--status-warning);
+  background: var(--status-warning-bg);
+  padding: 1px 6px;
+  border-radius: 999px;
+  text-transform: uppercase;
+}
+
+.process-table__time {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.process-table__history {
+  background: rgba(0, 0, 0, 0.25);
+  padding: 4px 16px 10px 42px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.process-table__history-row {
+  display: grid;
+  grid-template-columns: 32px 100px minmax(0, 1fr) 110px 150px;
+  gap: 12px;
+  align-items: center;
+  font-size: 12px;
+  padding: 4px 0;
+}
+
+.process-table__history-index {
+  color: var(--text-muted);
+}
+
+.process-table__history-error {
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.process-table__history-waba {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+@media (max-width: 900px) {
+  .process-table__head {
+    display: none;
+  }
+  .process-table__row,
+  .process-table__history-row {
+    grid-template-columns: 1fr;
+    row-gap: 4px;
+  }
+}
