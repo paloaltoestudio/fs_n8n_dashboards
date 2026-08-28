@@ -1,4 +1,5 @@
 import type { MicRow } from "../api/types";
+import { humanizeError } from "./errorMessage";
 
 export interface AuditableRow {
   process_id: string;
@@ -87,7 +88,7 @@ export function errorBreakdown<T extends AuditableRow>(
 ): ErrorBreakdownEntry[] {
   const counts = new Map<string, number>();
   for (const p of currentlyFailing) {
-    const reason = p.latest.error?.trim() || "Sin mensaje de error";
+    const reason = humanizeError(p.latest.error) || "Sin mensaje de error";
     counts.set(reason, (counts.get(reason) ?? 0) + 1);
   }
   return Array.from(counts.entries())

@@ -1,5 +1,6 @@
 import type { MicRow } from "../api/types";
 import { formatDateTime } from "../lib/format";
+import { humanizeError } from "../lib/errorMessage";
 import { StatusBadge } from "./StatusBadge";
 import "./FlatLogTable.css";
 
@@ -29,7 +30,7 @@ export function FlatLogTable({ rows }: FlatLogTableProps) {
               <StatusBadge tone={row.success ? "good" : "critical"} label={row.success ? "Exitoso" : "Fallido"} />
             </span>
             <span className="flat-log-table__error" title={row.error}>
-              {row.error || "—"}
+              {humanizeError(row.error) || "—"}
             </span>
             <span className="mono flat-log-table__api-id" title={row.api_process_id}>
               {row.api_process_id || "—"}
