@@ -1,32 +1,28 @@
-# React + TypeScript + Vite
+# Audit Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+React + Vite dashboard for auditing n8n flows. Data comes from Google Sheets via an n8n webhook (see `n8n/audit-dashboard-workflow.json`), proxied through a Netlify Function so the n8n API key never reaches the browser.
 
-Currently, two official plugins are available:
+## Local development
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+cp .env.example .env   # fill in N8N_URL / N8N_API_KEY
+npm run dev:netlify    # runs Vite + the Netlify Function together
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+`npm run dev` (plain Vite, no functions) will not be able to fetch data, since the app calls `/api/audit-data`, which only exists when the function is running alongside it.
+
+## Views
+
+- `/` — Overview: WABA connection health, interruption alerts, MIC quick stats
+- `/mic` — Full MIC audit: volume chart, failure breakdown, searchable retry-aware request table
+- `/?minimal` — Stripped-down view: stat tiles + flat table, no charts
+
+## Deploying to Netlify
+
+1. Set `N8N_URL`, `N8N_API_KEY`, `N8N_API_KEY_HEADER` as environment variables in the Netlify UI (Site settings → Environment variables) — **not** prefixed with `VITE_`, since those are only readable by the serverless function in `netlify/functions/audit-data.mts`, never bundled into client JS.
+2. Netlify picks up `netlify.toml` automatically (build command, publish dir, and the `/api/audit-data` → function redirect).
+
+## Updating the n8n workflow
+
+`n8n/audit-dashboard-workflow.json` is the source of truth for the webhook — re-import it into n8n after editing.

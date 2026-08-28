@@ -1,0 +1,9 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+[[redirects]]
+  from = "/api/audit-data"
+  to = "/.netlify/functions/audit-data"
+  status = 200

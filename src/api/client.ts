@@ -1,31 +1,24 @@
 import type { AuditData } from "./types";
 
-const API_URL = import.meta.env.VITE_API_URL;
-const API_KEY = import.meta.env.VITE_API_KEY;
-const API_KEY_HEADER = import.meta.env.VITE_API_KEY_HEADER || "X-Api-Key";
+// Calls our own Netlify Function, never n8n directly — the n8n API key
+// stays server-side and never reaches the browser bundle.
+const PROXY_PATH = "/api/audit-data";
 
 export class AuditApiError extends Error {}
 
 export async function fetchAuditData(): Promise<AuditData> {
-  if (!API_URL) {
-    throw new AuditApiError(
-      "VITE_API_URL is not set. Copy .env.example to .env.local and fill it in."
-    );
-  }
-
-  const res = await fetch(API_URL, {
-    headers: API_KEY ? { [API_KEY_HEADER]: API_KEY } : undefined,
-  });
+  const res = await fetch(PROXY_PATH);
 
   if (!res.ok) {
-    throw new AuditApiError(`n8n endpoint responded ${res.status} ${res.statusText}`);
+    const body = await res.text().catch(() => "");
+    throw new AuditApiError(`Audit data proxy responded ${res.status} ${res.statusText}${body ? `: ${body}` : ""}`);
   }
 
   const body = await res.json();
   const data = Array.isArray(body) ? body[0] : body;
 
   if (!data || typeof data !== "object" || !("MIC" in data)) {
-    throw new AuditApiError("Unexpected response shape from n8n endpoint.");
+    throw new AuditApiError("Unexpected response shape from the audit data proxy.");
   }
 
   return data as AuditData;
