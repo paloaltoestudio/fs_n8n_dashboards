@@ -9,12 +9,17 @@ export class AuditApiError extends Error {}
 export async function fetchAuditData(): Promise<AuditData> {
   const res = await fetch(PROXY_PATH);
 
+  const text = await res.text();
+
   if (!res.ok) {
-    const body = await res.text().catch(() => "");
-    throw new AuditApiError(`Audit data proxy responded ${res.status} ${res.statusText}${body ? `: ${body}` : ""}`);
+    throw new AuditApiError(`Audit data proxy responded ${res.status} ${res.statusText}${text ? `: ${text}` : ""}`);
   }
 
-  const body = await res.json();
+  if (!text) {
+    throw new AuditApiError("Audit data proxy returned an empty response (n8n may have returned nothing).");
+  }
+
+  const body = JSON.parse(text);
   const data = Array.isArray(body) ? body[0] : body;
 
   if (!data || typeof data !== "object" || !("MIC" in data)) {
