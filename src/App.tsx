@@ -1,12 +1,25 @@
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, useSearchParams } from "react-router-dom";
 import { Layout } from "./components/Layout";
 import { Home } from "./pages/Home";
 import { Mic } from "./pages/Mic";
+import { Minimal } from "./pages/Minimal";
 import { useAuditData } from "./lib/useAuditData";
 import "./App.css";
 
 export default function App() {
   const { data, error, loading, lastUpdated, refresh } = useAuditData();
+  const [searchParams] = useSearchParams();
+  const isMinimal = searchParams.has("minimal");
+
+  if (isMinimal) {
+    return (
+      <DataGate data={data} loading={loading} error={error}>
+        {(d) => (
+          <Minimal rows={d.MIC} lastUpdated={lastUpdated} loading={loading} error={error} onRefresh={refresh} />
+        )}
+      </DataGate>
+    );
+  }
 
   return (
     <Routes>

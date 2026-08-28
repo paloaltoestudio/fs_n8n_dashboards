@@ -136,7 +136,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Group all rows from every sheet into one object keyed by sheet name:\n// { MIC: [...rows], waba_quality_checks: [...rows] }\nconst result = {};\nfor (const item of $input.all()) {\n  const { _sheet, ...row } = item.json;\n  if (!result[_sheet]) result[_sheet] = [];\n  result[_sheet].push(row);\n}\nreturn [{ json: result }];"
+        "jsCode": "// Group all rows from every sheet into one object keyed by sheet name:\n// { MIC: [...rows], waba_quality_checks: [...rows] }\n// Both keys always appear, even with zero rows, so the frontend never has to guess.\nconst result = { MIC: [], waba_quality_checks: [] };\nfor (const item of $input.all()) {\n  const { _sheet, ...row } = item.json;\n  if (!result[_sheet]) result[_sheet] = [];\n  result[_sheet].push(row);\n}\nreturn [{ json: result }];"
       },
       "id": "75b18d5b-7f86-4daf-b644-ca91abebd592",
       "name": "Combine Sheets",

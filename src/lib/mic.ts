@@ -1,15 +1,24 @@
 import type { MicRow } from "../api/types";
 
-export interface MicProcess {
+export interface AuditableRow {
+  process_id: string;
+  success: boolean;
+  error: string;
+  timestamp: string;
+}
+
+export interface ProcessGroup<T extends AuditableRow> {
   processId: string;
-  attempts: MicRow[];
-  latest: MicRow;
+  attempts: T[];
+  latest: T;
   attemptCount: number;
 }
 
-/** Groups raw MIC rows by process_id and sorts each group's attempts chronologically. */
-export function groupByProcess(rows: MicRow[]): MicProcess[] {
-  const byId = new Map<string, MicRow[]>();
+export type MicProcess = ProcessGroup<MicRow>;
+
+/** Groups raw rows by process_id and sorts each group's attempts chronologically. */
+export function groupByProcess<T extends AuditableRow>(rows: T[]): ProcessGroup<T>[] {
+  const byId = new Map<string, T[]>();
   for (const row of rows) {
     const list = byId.get(row.process_id);
     if (list) list.push(row);
@@ -29,7 +38,7 @@ export function groupByProcess(rows: MicRow[]): MicProcess[] {
   });
 }
 
-export interface MicSummary {
+export interface MicSummary<T extends AuditableRow = MicRow> {
   uniqueRequests: number;
   totalAttempts: number;
   successCount: number;
@@ -37,10 +46,13 @@ export interface MicSummary {
   successRate: number;
   avgAttemptsPerRequest: number;
   retriedCount: number;
-  currentlyFailing: MicProcess[];
+  currentlyFailing: ProcessGroup<T>[];
 }
 
-export function summarize(processes: MicProcess[], totalAttempts: number): MicSummary {
+export function summarize<T extends AuditableRow>(
+  processes: ProcessGroup<T>[],
+  totalAttempts: number
+): MicSummary<T> {
   const uniqueRequests = processes.length;
   const successCount = processes.filter((p) => p.latest.success).length;
   const failingCount = uniqueRequests - successCount;
@@ -70,7 +82,9 @@ export interface ErrorBreakdownEntry {
 }
 
 /** Ranks the distinct failure reasons among currently-failing requests. */
-export function errorBreakdown(currentlyFailing: MicProcess[]): ErrorBreakdownEntry[] {
+export function errorBreakdown<T extends AuditableRow>(
+  currentlyFailing: ProcessGroup<T>[]
+): ErrorBreakdownEntry[] {
   const counts = new Map<string, number>();
   for (const p of currentlyFailing) {
     const reason = p.latest.error?.trim() || "Sin mensaje de error";
@@ -88,7 +102,7 @@ export interface DailyBucket {
 }
 
 /** Buckets every raw attempt (not deduped) by calendar day for a volume-over-time chart. */
-export function attemptsByDay(rows: MicRow[]): DailyBucket[] {
+export function attemptsByDay<T extends AuditableRow>(rows: T[]): DailyBucket[] {
   const buckets = new Map<string, DailyBucket>();
   for (const row of rows) {
     const day = row.timestamp.slice(0, 10);

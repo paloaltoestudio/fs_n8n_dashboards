@@ -1,0 +1,63 @@
+.flat-log-table {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.flat-log-table__head {
+  display: grid;
+  grid-template-columns: 130px 100px minmax(0, 1fr) 140px 150px;
+  gap: 12px;
+  padding: 10px 16px;
+  background: var(--surface-raised);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.flat-log-table__row {
+  display: grid;
+  grid-template-columns: 130px 100px minmax(0, 1fr) 140px 150px;
+  gap: 12px;
+  padding: 11px 16px;
+  align-items: center;
+  font-size: 13px;
+  border-top: 1px solid var(--border);
+}
+
+.flat-log-table__id {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.flat-log-table__error {
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.flat-log-table__api-id {
+  color: var(--text-muted);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.flat-log-table__time {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+@media (max-width: 900px) {
+  .flat-log-table__head {
+    display: none;
+  }
+  .flat-log-table__row {
+    grid-template-columns: 1fr;
+    row-gap: 4px;
+  }
+}

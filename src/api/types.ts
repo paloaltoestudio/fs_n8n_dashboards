@@ -5,8 +5,6 @@ export interface MicRow {
   api_process_id: string;
   error: string;
   timestamp: string;
-  "Validacion de telefono": string;
-  "Calidad WABA": string;
 }
 
 export interface WabaQualityRow {

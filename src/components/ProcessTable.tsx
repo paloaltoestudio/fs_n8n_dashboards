@@ -29,7 +29,7 @@ export function ProcessTable({ processes }: ProcessTableProps) {
       <div className="process-table__head">
         <span>Proceso</span>
         <span>Estado</span>
-        <span>Último error / validación</span>
+        <span>Último error</span>
         <span>Intentos</span>
         <span>Última actualización</span>
       </div>
@@ -77,8 +77,11 @@ export function ProcessTable({ processes }: ProcessTableProps) {
                       <span className="process-table__history-error">
                         {attempt.error || "Sin mensaje"}
                       </span>
-                      <span className="process-table__history-waba mono">
-                        WABA: {attempt["Calidad WABA"] || "—"}
+                      <span
+                        className="process-table__history-waba mono"
+                        title={attempt.api_process_id}
+                      >
+                        API ID: {attempt.api_process_id || "—"}
                       </span>
                       <span className="mono process-table__time">
                         {formatDateTime(attempt.timestamp)}
