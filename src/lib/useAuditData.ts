@@ -1,45 +1,35 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { fetchAuditData } from "../api/client";
-import type { AuditData } from "../api/types";
+import { useCallback } from "react";
+import { fetchAuditData, fetchClientRows } from "../api/client";
+import type { AuditData, MicRow } from "../api/types";
+import { getClient } from "./clients";
+import { usePolling, type PolledState } from "./usePolling";
 
-const POLL_INTERVAL_MS = 60_000;
+export type DashboardResult =
+  | { kind: "default"; data: AuditData }
+  | { kind: "client"; label: string; rows: MicRow[] };
 
-interface AuditDataState {
-  data: AuditData | null;
-  error: string | null;
-  loading: boolean;
-  lastUpdated: Date | null;
-  refresh: () => void;
-}
+/**
+ * Single polling hook for the whole app: resolves `clienteSlug` against the
+ * client registry and fetches the right dataset, so callers never run two
+ * competing pollers just to decide which one they actually need. An
+ * unrecognized `clienteSlug` surfaces as an error rather than silently
+ * falling back to the default dataset.
+ */
+export function useDashboardData(clienteSlug: string | null): PolledState<DashboardResult> {
+  const client = getClient(clienteSlug);
+  const unknownClient = clienteSlug !== null && !client;
 
-export function useAuditData(): AuditDataState {
-  const [data, setData] = useState<AuditData | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const inFlight = useRef(false);
-
-  const load = useCallback(async () => {
-    if (inFlight.current) return;
-    inFlight.current = true;
-    try {
-      const result = await fetchAuditData();
-      setData(result);
-      setError(null);
-      setLastUpdated(new Date());
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error fetching audit data.");
-    } finally {
-      setLoading(false);
-      inFlight.current = false;
+  const fetcher = useCallback(async (): Promise<DashboardResult> => {
+    if (unknownClient) {
+      throw new Error(`Cliente desconocido: "${clienteSlug}".`);
     }
-  }, []);
+    if (client) {
+      const rows = await fetchClientRows(client.slug, client.dataKey);
+      return { kind: "client", label: client.label, rows };
+    }
+    const data = await fetchAuditData();
+    return { kind: "default", data };
+  }, [client, unknownClient, clienteSlug]);
 
-  useEffect(() => {
-    load();
-    const id = setInterval(load, POLL_INTERVAL_MS);
-    return () => clearInterval(id);
-  }, [load]);
-
-  return { data, error, loading, lastUpdated, refresh: load };
+  return usePolling(fetcher);
 }

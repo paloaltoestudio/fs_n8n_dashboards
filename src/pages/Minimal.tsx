@@ -9,6 +9,8 @@ import "./Minimal.css";
 
 interface MinimalProps {
   rows: MicRow[];
+  title?: string;
+  subtitle?: string;
   lastUpdated: Date | null;
   loading: boolean;
   error: string | null;
@@ -17,7 +19,15 @@ interface MinimalProps {
 
 type StatusFilter = "all" | "success" | "failing";
 
-export function Minimal({ rows, lastUpdated, loading, error, onRefresh }: MinimalProps) {
+export function Minimal({
+  rows,
+  title = "Audit Log",
+  subtitle = 'Vista mínima · hoja "MIC"',
+  lastUpdated,
+  loading,
+  error,
+  onRefresh,
+}: MinimalProps) {
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
 
@@ -44,8 +54,8 @@ export function Minimal({ rows, lastUpdated, loading, error, onRefresh }: Minima
     <div className="minimal">
       <header className="minimal__topbar">
         <div>
-          <h1 className="minimal__title">Audit Log</h1>
-          <p className="minimal__subtitle">Vista mínima &middot; hoja "MIC"</p>
+          <h1 className="minimal__title">{title}</h1>
+          <p className="minimal__subtitle">{subtitle}</p>
         </div>
         <div className="minimal__status">
           {error ? (

@@ -3,20 +3,46 @@ import { Layout } from "./components/Layout";
 import { Home } from "./pages/Home";
 import { Mic } from "./pages/Mic";
 import { Minimal } from "./pages/Minimal";
-import { useAuditData } from "./lib/useAuditData";
+import { useDashboardData } from "./lib/useAuditData";
+import { getClient } from "./lib/clients";
 import "./App.css";
 
 export default function App() {
-  const { data, error, loading, lastUpdated, refresh } = useAuditData();
   const [searchParams] = useSearchParams();
+  const clienteSlug = searchParams.get("cliente");
   const isMinimal = searchParams.has("minimal");
+  const client = getClient(clienteSlug);
+
+  const { data: result, error, loading, lastUpdated, refresh } = useDashboardData(clienteSlug);
+
+  if (client) {
+    return (
+      <DataGate data={result} loading={loading} error={error}>
+        {(r) =>
+          r.kind === "client" && (
+            <Minimal
+              rows={r.rows}
+              title={r.label}
+              subtitle={`Vista mínima · hoja "${client.dataKey}"`}
+              lastUpdated={lastUpdated}
+              loading={loading}
+              error={error}
+              onRefresh={refresh}
+            />
+          )
+        }
+      </DataGate>
+    );
+  }
 
   if (isMinimal) {
     return (
-      <DataGate data={data} loading={loading} error={error}>
-        {(d) => (
-          <Minimal rows={d.MIC} lastUpdated={lastUpdated} loading={loading} error={error} onRefresh={refresh} />
-        )}
+      <DataGate data={result} loading={loading} error={error}>
+        {(r) =>
+          r.kind === "default" && (
+            <Minimal rows={r.data.MIC} lastUpdated={lastUpdated} loading={loading} error={error} onRefresh={refresh} />
+          )
+        }
       </DataGate>
     );
   }
@@ -27,16 +53,16 @@ export default function App() {
         <Route
           index
           element={
-            <DataGate data={data} loading={loading} error={error}>
-              {(d) => <Home data={d} />}
+            <DataGate data={result} loading={loading} error={error}>
+              {(r) => r.kind === "default" && <Home data={r.data} />}
             </DataGate>
           }
         />
         <Route
           path="/mic"
           element={
-            <DataGate data={data} loading={loading} error={error}>
-              {(d) => <Mic data={d} />}
+            <DataGate data={result} loading={loading} error={error}>
+              {(r) => r.kind === "default" && <Mic data={r.data} />}
             </DataGate>
           }
         />
