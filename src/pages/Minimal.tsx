@@ -34,10 +34,15 @@ export function Minimal({
   const processes = useMemo(() => groupByProcess(rows), [rows]);
   const summary = useMemo(() => summarize(processes, rows.length), [processes, rows.length]);
 
+  // Filter/search on the latest attempt per process (not every raw row), so
+  // the table always agrees with the stat tiles above — a process with an
+  // old failed attempt but a later successful retry counts as succeeding,
+  // in both places, same as the full MIC dashboard.
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return rows
-      .filter((row) => {
+    return processes
+      .filter((p) => {
+        const row = p.latest;
         if (statusFilter === "success" && !row.success) return false;
         if (statusFilter === "failing" && row.success) return false;
         if (!q) return true;
@@ -47,8 +52,9 @@ export function Minimal({
           row.api_process_id?.toLowerCase().includes(q)
         );
       })
+      .map((p) => p.latest)
       .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-  }, [rows, query, statusFilter]);
+  }, [processes, query, statusFilter]);
 
   return (
     <div className="minimal">
