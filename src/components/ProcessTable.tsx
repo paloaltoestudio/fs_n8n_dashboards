@@ -1,8 +1,8 @@
 import { useState } from "react";
 import type { MicProcess } from "../lib/mic";
 import { formatDateTime } from "../lib/format";
-import { humanizeError } from "../lib/errorMessage";
 import { StatusBadge } from "./StatusBadge";
+import { ErrorCell } from "./ErrorCell";
 import "./ProcessTable.css";
 
 interface ProcessTableProps {
@@ -54,9 +54,7 @@ export function ProcessTable({ processes }: ProcessTableProps) {
                     label={p.latest.success ? "Exitoso" : "Fallido"}
                   />
                 </span>
-                <span className="process-table__error" title={p.latest.error}>
-                  {humanizeError(p.latest.error) || "—"}
-                </span>
+                <ErrorCell raw={p.latest.error} />
                 <span className="tabular">
                   {p.attemptCount}
                   {p.attemptCount > 1 && <span className="process-table__retry-tag">retry</span>}
@@ -75,9 +73,7 @@ export function ProcessTable({ processes }: ProcessTableProps) {
                         tone={attempt.success ? "good" : "critical"}
                         label={attempt.success ? "Exitoso" : "Fallido"}
                       />
-                      <span className="process-table__history-error" title={attempt.error}>
-                        {humanizeError(attempt.error) || "Sin mensaje"}
-                      </span>
+                      <ErrorCell raw={attempt.error} emptyText="Sin mensaje" />
                       <span
                         className="process-table__history-waba mono"
                         title={attempt.api_process_id}

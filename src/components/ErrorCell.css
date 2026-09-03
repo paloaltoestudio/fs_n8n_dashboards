@@ -1,0 +1,56 @@
+.error-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.error-cell[role="button"] {
+  cursor: pointer;
+}
+
+.error-cell__text {
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.error-cell.is-expanded {
+  align-items: flex-start;
+}
+
+.error-cell.is-expanded .error-cell__text {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
+  word-break: break-word;
+}
+
+.error-cell__copy {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.12s ease, color 0.12s ease, background 0.12s ease;
+}
+
+.error-cell:hover .error-cell__copy,
+.error-cell__copy:focus-visible {
+  opacity: 1;
+}
+
+.error-cell__copy:hover,
+.error-cell__copy:focus-visible {
+  color: var(--text-primary);
+  background: var(--surface-hover);
+  outline: none;
+}

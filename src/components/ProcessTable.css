@@ -60,13 +60,6 @@
   transform: rotate(90deg);
 }
 
-.process-table__error {
-  color: var(--text-secondary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .process-table__retry-tag {
   margin-left: 6px;
   font-size: 10px;
@@ -101,13 +94,6 @@
 
 .process-table__history-index {
   color: var(--text-muted);
-}
-
-.process-table__history-error {
-  color: var(--text-secondary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .process-table__history-waba {
