@@ -7,6 +7,7 @@ import { ErrorBreakdown } from "../components/charts/ErrorBreakdown";
 import { ProcessTable } from "../components/ProcessTable";
 import { attemptsByDay, errorBreakdown, groupByProcess, summarize } from "../lib/mic";
 import { formatPercent } from "../lib/format";
+import { exportRowsToCsv } from "../lib/csv";
 import "./Mic.css";
 
 interface MicProps {
@@ -100,6 +101,13 @@ export function Mic({ data }: MicProps) {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
+            <button
+              className="mic__download"
+              onClick={() => exportRowsToCsv("mic", filtered.map((p) => p.latest))}
+              disabled={filtered.length === 0}
+            >
+              Descargar CSV
+            </button>
           </div>
         }
       >

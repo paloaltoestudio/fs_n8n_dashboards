@@ -5,6 +5,7 @@ import { StatTile } from "../components/StatTile";
 import { FlatLogTable } from "../components/FlatLogTable";
 import { groupByProcess, summarize } from "../lib/mic";
 import { formatPercent } from "../lib/format";
+import { exportRowsToCsv } from "../lib/csv";
 import "./Minimal.css";
 
 interface MinimalProps {
@@ -118,6 +119,13 @@ export function Minimal({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
+            <button
+              className="minimal__download"
+              onClick={() => exportRowsToCsv(title.toLowerCase().replace(/\s+/g, "-"), filtered)}
+              disabled={filtered.length === 0}
+            >
+              Descargar CSV
+            </button>
           </div>
         }
       >

@@ -72,6 +72,27 @@
   border-color: var(--series-blue);
 }
 
+.mic__download {
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 7px 12px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.mic__download:hover:not(:disabled) {
+  color: var(--text-primary);
+  border-color: var(--border-strong);
+}
+
+.mic__download:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 @media (max-width: 1100px) {
   .mic__stats {
     grid-template-columns: repeat(3, minmax(0, 1fr));
