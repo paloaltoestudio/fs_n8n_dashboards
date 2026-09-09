@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { humanizeError } from "../lib/errorMessage";
+import { humanizeError, prettyPrintError } from "../lib/errorMessage";
 import "./ErrorCell.css";
 
 interface ErrorCellProps {
@@ -14,7 +14,10 @@ export function ErrorCell({ raw, emptyText = "—" }: ErrorCellProps) {
   const [copied, setCopied] = useState(false);
 
   const hasContent = Boolean(raw?.trim());
-  const text = humanizeError(raw) || emptyText;
+  // Collapsed: a short, best-effort one-liner. Expanded: the whole parsed
+  // structure, pretty-printed — this survives new/unknown error shapes
+  // without needing another patch every time an upstream API changes.
+  const text = (expanded ? prettyPrintError(raw) : humanizeError(raw)) || emptyText;
 
   function toggleExpanded(e: React.MouseEvent | React.KeyboardEvent) {
     e.stopPropagation();

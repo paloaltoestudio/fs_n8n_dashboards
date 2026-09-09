@@ -84,3 +84,38 @@ export function humanizeError(raw: string | undefined | null): string {
 
   return message;
 }
+
+/**
+ * Pretty-prints whatever structure is in `raw` for the expanded view — instead
+ * of picking one field (which breaks every time an upstream API introduces a
+ * slightly different error shape), just show the whole parsed object, nicely
+ * indented. Falls back one level at a time down to the raw text if nothing
+ * parses as JSON at all.
+ */
+export function prettyPrintError(raw: string | undefined | null): string {
+  if (!raw) return "";
+  const trimmed = raw.trim();
+  if (!trimmed) return "";
+
+  const outer = tryParseJSON(trimmed);
+  if (!outer || typeof outer !== "object") return trimmed;
+
+  const message = (outer as Record<string, unknown>).message;
+  if (typeof message === "string") {
+    const nestedMatch = message.match(/^(\d+)\s*-\s*(".*")$/s);
+    if (nestedMatch) {
+      const innerString = tryParseJSON(nestedMatch[2]);
+      if (typeof innerString === "string") {
+        const innerObj = tryParseJSON(innerString);
+        if (innerObj && typeof innerObj === "object") {
+          return JSON.stringify(innerObj, null, 2);
+        }
+      }
+    }
+  }
+
+  // No nested API error found — pretty-print the outer object, dropping the
+  // stack trace (huge, not useful for triage) if present.
+  const { stack, ...rest } = outer as Record<string, unknown>;
+  return JSON.stringify(rest, null, 2);
+}
