@@ -28,7 +28,7 @@ export function ErrorCell({ raw, emptyText = "—" }: ErrorCellProps) {
     e.stopPropagation();
     if (!raw) return;
     try {
-      await navigator.clipboard.writeText(raw);
+      await navigator.clipboard.writeText(humanizeError(raw));
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch {
@@ -53,8 +53,8 @@ export function ErrorCell({ raw, emptyText = "—" }: ErrorCellProps) {
           className="error-cell__copy"
           role="button"
           tabIndex={0}
-          aria-label="Copiar error completo"
-          title="Copiar error completo"
+          aria-label="Copiar mensaje"
+          title="Copiar mensaje"
           onClick={handleCopy}
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") handleCopy(e);
