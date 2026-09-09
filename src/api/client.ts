@@ -3,7 +3,10 @@ import type { Env } from "../components/EnvSelector";
 
 // Calls our own Netlify Function, never n8n directly — the n8n API key
 // stays server-side and never reaches the browser bundle.
-const PROXY_PATH = "/api/audit-data";
+// Calling the function path directly (not the /api/audit-data redirect alias) —
+// Netlify's production redirect engine doesn't reliably forward query strings
+// the way `netlify dev`'s local proxy does, which silently broke ?list=/?tab=/?env=.
+const PROXY_PATH = "/.netlify/functions/audit-data";
 
 export class AuditApiError extends Error {}
 
