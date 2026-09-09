@@ -1,5 +1,4 @@
 {
-  "name": "Audit Dashboard - Sheet Data API",
   "nodes": [
     {
       "parameters": {
@@ -8,11 +7,11 @@
         "responseMode": "responseNode",
         "options": {}
       },
-      "id": "ae341ae4-6985-4ae1-a556-fd9d7ff836a4",
+      "id": "c65a5505-5ac5-4f1f-9458-b45d8a4678ad",
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2,
-      "position": [368, 208],
+      "position": [1408, 240],
       "webhookId": "audit-data",
       "credentials": {
         "httpHeaderAuth": {
@@ -20,6 +19,160 @@
           "name": "Dashboard Auth"
         }
       }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "list1",
+              "leftValue": "={{ $json.query.list }}",
+              "rightValue": "",
+              "operator": { "type": "string", "operation": "notEmpty" }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "d1a2b3c4-0001-4a1a-9c1a-000000000201",
+      "name": "Has list param?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1408, 560]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "tab1",
+              "leftValue": "={{ $json.query.tab }}",
+              "rightValue": "",
+              "operator": { "type": "string", "operation": "notEmpty" }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "d1a2b3c4-0002-4a1a-9c1a-000000000202",
+      "name": "Has tab param?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1648, 560]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "1JZczxKlBiUUG9TyQ1LRABmbbI1xlNfJuSyyszgfuuG0",
+          "mode": "list",
+          "cachedResultName": "firmaseguro_n8n_logs_test",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1JZczxKlBiUUG9TyQ1LRABmbbI1xlNfJuSyyszgfuuG0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "_index"
+        },
+        "options": {}
+      },
+      "id": "d1a2b3c4-0003-4a1a-9c1a-000000000203",
+      "name": "Read Index",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [1888, 480],
+      "credentials": {
+        "googleApi": {
+          "id": "W8aEJlW99kfaVWnw",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// _index tab has one column, tab_name, listing every real data tab.\nreturn [{ json: { tabs: $input.all().map((i) => i.json.tab_name).filter(Boolean) } }];"
+      },
+      "id": "d1a2b3c4-0004-4a1a-9c1a-000000000204",
+      "name": "Format Tab List",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2128, 480]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "d1a2b3c4-0005-4a1a-9c1a-000000000205",
+      "name": "Respond Tabs",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [2368, 480]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "1JZczxKlBiUUG9TyQ1LRABmbbI1xlNfJuSyyszgfuuG0",
+          "mode": "list",
+          "cachedResultName": "firmaseguro_n8n_logs_test",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1JZczxKlBiUUG9TyQ1LRABmbbI1xlNfJuSyyszgfuuG0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "={{ $json.query.tab }}"
+        },
+        "options": {}
+      },
+      "id": "d1a2b3c4-0006-4a1a-9c1a-000000000206",
+      "name": "Read Tab",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [1888, 680],
+      "credentials": {
+        "googleApi": {
+          "id": "W8aEJlW99kfaVWnw",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { tab: $('Webhook').item.json.query.tab, rows: $input.all().map((i) => i.json) } }];"
+      },
+      "id": "d1a2b3c4-0007-4a1a-9c1a-000000000207",
+      "name": "Format Tab Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2128, 680]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "d1a2b3c4-0008-4a1a-9c1a-000000000208",
+      "name": "Respond Tab",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [2368, 680]
     },
     {
       "parameters": {
@@ -40,11 +193,11 @@
         },
         "options": {}
       },
-      "id": "51506e35-2382-4601-81e3-a3b5efafeef5",
+      "id": "6f23ecba-978e-4024-8e8f-e55ee5d16dbb",
       "name": "Read MIC",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
-      "position": [608, 80],
+      "position": [1648, 112],
       "credentials": {
         "googleApi": {
           "id": "W8aEJlW99kfaVWnw",
@@ -69,11 +222,11 @@
         },
         "options": {}
       },
-      "id": "6c706fe6-bc51-4c8f-b414-20a935afc086",
+      "id": "5113a303-6dae-4e1f-85cd-99a2596eb2eb",
       "name": "Read waba_quality_checks",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
-      "position": [608, 336],
+      "position": [1648, 368],
       "credentials": {
         "googleApi": {
           "id": "W8aEJlW99kfaVWnw",
@@ -85,64 +238,54 @@
       "parameters": {
         "assignments": {
           "assignments": [
-            {
-              "id": "f1",
-              "name": "_sheet",
-              "value": "MIC",
-              "type": "string"
-            }
+            { "id": "f1", "name": "_sheet", "value": "MIC", "type": "string" }
           ]
         },
         "includeOtherFields": true,
         "options": {}
       },
-      "id": "a19f548e-9940-4505-a489-660b0b67a31e",
+      "id": "3ce119e9-1aa3-4dcf-a6ec-98e6b77de9d1",
       "name": "Tag MIC",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [848, 80]
+      "position": [1888, 112]
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
-            {
-              "id": "f2",
-              "name": "_sheet",
-              "value": "waba_quality_checks",
-              "type": "string"
-            }
+            { "id": "f2", "name": "_sheet", "value": "waba_quality_checks", "type": "string" }
           ]
         },
         "includeOtherFields": true,
         "options": {}
       },
-      "id": "b29f548e-9940-4505-a489-660b0b67a32e",
+      "id": "a1dc9bda-6c4c-4e15-a720-5ca75078da0e",
       "name": "Tag waba_quality_checks",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [848, 336]
+      "position": [1888, 368]
     },
     {
       "parameters": {
         "mode": "append",
         "options": {}
       },
-      "id": "c39f548e-9940-4505-a489-660b0b67a33e",
+      "id": "aa0b4785-ab87-4623-8b02-e003ffd1228a",
       "name": "Merge",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3,
-      "position": [1088, 208]
+      "position": [2128, 240]
     },
     {
       "parameters": {
         "jsCode": "// Group all rows from every sheet into one object keyed by sheet name:\n// { MIC: [...rows], waba_quality_checks: [...rows] }\n// Both keys always appear, even with zero rows, so the frontend never has to guess.\nconst result = { MIC: [], waba_quality_checks: [] };\nfor (const item of $input.all()) {\n  const { _sheet, ...row } = item.json;\n  if (!result[_sheet]) result[_sheet] = [];\n  result[_sheet].push(row);\n}\nreturn [{ json: result }];"
       },
-      "id": "75b18d5b-7f86-4daf-b644-ca91abebd592",
+      "id": "c0397470-72d0-4881-9a82-be296ad032c4",
       "name": "Combine Sheets",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1328, 208]
+      "position": [2368, 240]
     },
     {
       "parameters": {
@@ -150,95 +293,65 @@
         "responseBody": "={{ $json }}",
         "options": {}
       },
-      "id": "61e8f010-66be-4b6b-af95-0aa6190aedb9",
+      "id": "2703a9d4-a2d6-45cd-911b-a28298525c67",
       "name": "Respond OK",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
-      "position": [1568, 208]
+      "position": [2608, 240]
     }
   ],
   "connections": {
     "Webhook": {
       "main": [
         [
-          {
-            "node": "Read MIC",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Read waba_quality_checks",
-            "type": "main",
-            "index": 0
-          }
+          { "node": "Has list param?", "type": "main", "index": 0 }
         ]
       ]
+    },
+    "Has list param?": {
+      "main": [
+        [{ "node": "Read Index", "type": "main", "index": 0 }],
+        [{ "node": "Has tab param?", "type": "main", "index": 0 }]
+      ]
+    },
+    "Has tab param?": {
+      "main": [
+        [{ "node": "Read Tab", "type": "main", "index": 0 }],
+        [
+          { "node": "Read MIC", "type": "main", "index": 0 },
+          { "node": "Read waba_quality_checks", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Read Index": {
+      "main": [[{ "node": "Format Tab List", "type": "main", "index": 0 }]]
+    },
+    "Format Tab List": {
+      "main": [[{ "node": "Respond Tabs", "type": "main", "index": 0 }]]
+    },
+    "Read Tab": {
+      "main": [[{ "node": "Format Tab Data", "type": "main", "index": 0 }]]
+    },
+    "Format Tab Data": {
+      "main": [[{ "node": "Respond Tab", "type": "main", "index": 0 }]]
     },
     "Read MIC": {
-      "main": [
-        [
-          {
-            "node": "Tag MIC",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+      "main": [[{ "node": "Tag MIC", "type": "main", "index": 0 }]]
     },
     "Read waba_quality_checks": {
-      "main": [
-        [
-          {
-            "node": "Tag waba_quality_checks",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+      "main": [[{ "node": "Tag waba_quality_checks", "type": "main", "index": 0 }]]
     },
     "Tag MIC": {
-      "main": [
-        [
-          {
-            "node": "Merge",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+      "main": [[{ "node": "Merge", "type": "main", "index": 0 }]]
     },
     "Tag waba_quality_checks": {
-      "main": [
-        [
-          {
-            "node": "Merge",
-            "type": "main",
-            "index": 1
-          }
-        ]
-      ]
+      "main": [[{ "node": "Merge", "type": "main", "index": 1 }]]
     },
     "Merge": {
-      "main": [
-        [
-          {
-            "node": "Combine Sheets",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+      "main": [[{ "node": "Combine Sheets", "type": "main", "index": 0 }]]
     },
     "Combine Sheets": {
-      "main": [
-        [
-          {
-            "node": "Respond OK",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+      "main": [[{ "node": "Respond OK", "type": "main", "index": 0 }]]
     }
   },
   "pinData": {},

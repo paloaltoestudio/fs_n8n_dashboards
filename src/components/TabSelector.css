@@ -1,0 +1,15 @@
+.tab-selector {
+  background: var(--surface-raised);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.tab-selector:focus {
+  outline: none;
+  border-color: var(--series-blue);
+}

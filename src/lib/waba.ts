@@ -2,13 +2,14 @@ import type { WabaQualityRow } from "../api/types";
 
 export type StatusTone = "good" | "warning" | "serious" | "critical" | "muted";
 
-export function sortByTimestampDesc(rows: WabaQualityRow[]): WabaQualityRow[] {
+export function sortByTimestampDesc(rows: WabaQualityRow[] | undefined | null): WabaQualityRow[] {
+  if (!Array.isArray(rows)) return [];
   return [...rows].sort(
     (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
   );
 }
 
-export function latestWabaCheck(rows: WabaQualityRow[]): WabaQualityRow | null {
+export function latestWabaCheck(rows: WabaQualityRow[] | undefined | null): WabaQualityRow | null {
   const sorted = sortByTimestampDesc(rows);
   return sorted[0] ?? null;
 }

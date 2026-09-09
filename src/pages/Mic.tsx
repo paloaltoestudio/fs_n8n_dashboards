@@ -5,7 +5,7 @@ import { StatTile } from "../components/StatTile";
 import { AttemptsChart } from "../components/charts/AttemptsChart";
 import { ErrorBreakdown } from "../components/charts/ErrorBreakdown";
 import { ProcessTable } from "../components/ProcessTable";
-import { attemptsByDay, errorBreakdown, groupByProcess, summarize } from "../lib/mic";
+import { attemptsByDay, distinctExecutions, errorBreakdown, groupByProcess, normalizeExecution, summarize } from "../lib/mic";
 import { formatPercent } from "../lib/format";
 import { exportRowsToCsv } from "../lib/csv";
 import "./Mic.css";
@@ -19,10 +19,20 @@ type StatusFilter = "all" | "success" | "failing";
 export function Mic({ data }: MicProps) {
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [executionFilter, setExecutionFilter] = useState<string>("all");
 
-  const processes = useMemo(() => groupByProcess(data.MIC), [data.MIC]);
-  const summary = useMemo(() => summarize(processes, data.MIC.length), [processes, data.MIC.length]);
-  const daily = useMemo(() => attemptsByDay(data.MIC), [data.MIC]);
+  const executions = useMemo(() => distinctExecutions(data.MIC), [data.MIC]);
+
+  // Selecting an execution scopes the whole page (stats and charts included)
+  // to that batch's rows, same mental model as picking a different client.
+  const scopedRows = useMemo(() => {
+    if (executionFilter === "all") return data.MIC;
+    return data.MIC.filter((r) => normalizeExecution(r.execution) === executionFilter);
+  }, [data.MIC, executionFilter]);
+
+  const processes = useMemo(() => groupByProcess(scopedRows), [scopedRows]);
+  const summary = useMemo(() => summarize(processes, scopedRows.length), [processes, scopedRows.length]);
+  const daily = useMemo(() => attemptsByDay(scopedRows), [scopedRows]);
   const breakdown = useMemo(() => errorBreakdown(summary.currentlyFailing), [summary.currentlyFailing]);
 
   const filtered = useMemo(() => {
@@ -84,6 +94,20 @@ export function Mic({ data }: MicProps) {
         subtitle="Un proceso por solicitud; despliega para ver el historial de reintentos"
         action={
           <div className="mic__filters">
+            {executions.length > 0 && (
+              <select
+                className="mic__select"
+                value={executionFilter}
+                onChange={(e) => setExecutionFilter(e.target.value)}
+              >
+                <option value="all">Todas las ejecuciones</option>
+                {executions.map((e) => (
+                  <option key={e} value={e}>
+                    {e}
+                  </option>
+                ))}
+              </select>
+            )}
             <div className="mic__toggle">
               {(["all", "failing", "success"] as StatusFilter[]).map((f) => (
                 <button

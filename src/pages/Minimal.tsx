@@ -3,37 +3,36 @@ import type { MicRow } from "../api/types";
 import { Card } from "../components/Card";
 import { StatTile } from "../components/StatTile";
 import { FlatLogTable } from "../components/FlatLogTable";
-import { groupByProcess, summarize } from "../lib/mic";
+import { distinctExecutions, groupByProcess, normalizeExecution, summarize } from "../lib/mic";
 import { formatPercent } from "../lib/format";
 import { exportRowsToCsv } from "../lib/csv";
 import "./Minimal.css";
 
 interface MinimalProps {
   rows: MicRow[];
-  title?: string;
-  subtitle?: string;
-  lastUpdated: Date | null;
-  loading: boolean;
-  error: string | null;
-  onRefresh: () => void;
+  title: string;
+  subtitle: string;
 }
 
 type StatusFilter = "all" | "success" | "failing";
 
-export function Minimal({
-  rows,
-  title = "Audit Log",
-  subtitle = 'Vista mínima · hoja "MIC"',
-  lastUpdated,
-  loading,
-  error,
-  onRefresh,
-}: MinimalProps) {
+export function Minimal({ rows, title, subtitle }: MinimalProps) {
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [executionFilter, setExecutionFilter] = useState<string>("all");
 
-  const processes = useMemo(() => groupByProcess(rows), [rows]);
-  const summary = useMemo(() => summarize(processes, rows.length), [processes, rows.length]);
+  const executions = useMemo(() => distinctExecutions(rows), [rows]);
+
+  // Selecting an execution scopes the *whole page* (stats included) to that
+  // batch's rows, not just the visible table — same mental model as picking
+  // a different client.
+  const scopedRows = useMemo(() => {
+    if (executionFilter === "all") return rows;
+    return rows.filter((r) => normalizeExecution(r.execution) === executionFilter);
+  }, [rows, executionFilter]);
+
+  const processes = useMemo(() => groupByProcess(scopedRows), [scopedRows]);
+  const summary = useMemo(() => summarize(processes, scopedRows.length), [processes, scopedRows.length]);
 
   // Filter/search on the latest attempt per process (not every raw row), so
   // the table always agrees with the stat tiles above — a process with an
@@ -59,29 +58,10 @@ export function Minimal({
 
   return (
     <div className="minimal">
-      <header className="minimal__topbar">
-        <div>
-          <h1 className="minimal__title">{title}</h1>
-          <p className="minimal__subtitle">{subtitle}</p>
-        </div>
-        <div className="minimal__status">
-          {error ? (
-            <span className="minimal__pulse minimal__pulse--error" title={error}>
-              Sin conexión
-            </span>
-          ) : (
-            <span className="minimal__pulse minimal__pulse--ok">En vivo</span>
-          )}
-          <button className="minimal__refresh" onClick={onRefresh} disabled={loading}>
-            {loading ? "Actualizando…" : "Actualizar"}
-          </button>
-          {lastUpdated && (
-            <span className="minimal__updated mono">
-              {lastUpdated.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" })}
-            </span>
-          )}
-        </div>
-      </header>
+      <div className="minimal__header">
+        <h2 className="minimal__title">{title}</h2>
+        <p className="minimal__subtitle">{subtitle}</p>
+      </div>
 
       <div className="minimal__stats">
         <StatTile label="Procesos únicos" value={summary.uniqueRequests} />
@@ -102,6 +82,20 @@ export function Minimal({
         title="Registros"
         action={
           <div className="minimal__filters">
+            {executions.length > 0 && (
+              <select
+                className="minimal__select"
+                value={executionFilter}
+                onChange={(e) => setExecutionFilter(e.target.value)}
+              >
+                <option value="all">Todas las ejecuciones</option>
+                {executions.map((e) => (
+                  <option key={e} value={e}>
+                    {e}
+                  </option>
+                ))}
+              </select>
+            )}
             <div className="minimal__toggle">
               {(["all", "failing", "success"] as StatusFilter[]).map((f) => (
                 <button

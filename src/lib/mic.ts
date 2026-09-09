@@ -102,6 +102,26 @@ export interface DailyBucket {
   failed: number;
 }
 
+/** Google Sheets may return `execution` as a number (e.g. 20260906) rather than a string — normalize for comparison/display. */
+export function normalizeExecution(value: MicRow["execution"]): string {
+  if (value === undefined || value === null) return "";
+  return String(value).trim();
+}
+
+/**
+ * Distinct, non-empty `execution` values present in a dataset, newest-looking
+ * first. Returns [] for datasets that don't use this column yet — callers
+ * should hide the filter UI entirely in that case rather than show it empty.
+ */
+export function distinctExecutions(rows: MicRow[]): string[] {
+  const set = new Set<string>();
+  for (const row of rows) {
+    const value = normalizeExecution(row.execution);
+    if (value) set.add(value);
+  }
+  return Array.from(set).sort((a, b) => b.localeCompare(a));
+}
+
 /** Buckets every raw attempt (not deduped) by calendar day for a volume-over-time chart. */
 export function attemptsByDay<T extends AuditableRow>(rows: T[]): DailyBucket[] {
   const buckets = new Map<string, DailyBucket>();

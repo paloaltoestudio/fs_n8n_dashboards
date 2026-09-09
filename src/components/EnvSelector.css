@@ -1,0 +1,32 @@
+.env-selector {
+  border-radius: var(--radius-sm);
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
+.env-selector--test {
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+
+.env-selector--test:focus {
+  outline: none;
+  border-color: var(--series-blue);
+}
+
+/* Prod gets a visually distinct, slightly alarming treatment on purpose —
+   nobody should be able to glance at the topbar and mistake it for test. */
+.env-selector--prod {
+  background: var(--status-critical-bg);
+  border: 1px solid var(--status-critical);
+  color: var(--status-critical);
+}
+
+.env-selector--prod:focus {
+  outline: none;
+  border-color: var(--status-critical);
+}

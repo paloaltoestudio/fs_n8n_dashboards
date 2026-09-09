@@ -3,58 +3,44 @@ import { Layout } from "./components/Layout";
 import { Home } from "./pages/Home";
 import { Mic } from "./pages/Mic";
 import { Minimal } from "./pages/Minimal";
-import { useDashboardData } from "./lib/useAuditData";
-import { getClient } from "./lib/clients";
+import { useDashboardData, useTabList } from "./lib/useAuditData";
+import type { Env } from "./components/EnvSelector";
 import "./App.css";
 
 export default function App() {
   const [searchParams] = useSearchParams();
-  const clienteSlug = searchParams.get("cliente");
-  const isMinimal = searchParams.has("minimal");
-  const client = getClient(clienteSlug);
+  const selectedTab = searchParams.get("tab");
+  const env: Env = searchParams.get("env") === "prod" ? "prod" : "test";
 
-  const { data: result, error, loading, lastUpdated, refresh } = useDashboardData(clienteSlug);
-
-  if (client) {
-    return (
-      <DataGate data={result} loading={loading} error={error}>
-        {(r) =>
-          r.kind === "client" && (
-            <Minimal
-              rows={r.rows}
-              title={r.label}
-              subtitle={`Vista mínima · hoja "${client.dataKey}"`}
-              lastUpdated={lastUpdated}
-              loading={loading}
-              error={error}
-              onRefresh={refresh}
-            />
-          )
-        }
-      </DataGate>
-    );
-  }
-
-  if (isMinimal) {
-    return (
-      <DataGate data={result} loading={loading} error={error}>
-        {(r) =>
-          r.kind === "default" && (
-            <Minimal rows={r.data.MIC} lastUpdated={lastUpdated} loading={loading} error={error} onRefresh={refresh} />
-          )
-        }
-      </DataGate>
-    );
-  }
+  const { data: result, error, loading, lastUpdated, refresh } = useDashboardData(selectedTab, env);
+  const { data: tabs } = useTabList(env);
 
   return (
     <Routes>
-      <Route element={<Layout lastUpdated={lastUpdated} loading={loading} error={error} onRefresh={refresh} />}>
+      <Route
+        element={
+          <Layout
+            tabs={tabs ?? []}
+            currentTab={selectedTab}
+            currentEnv={env}
+            lastUpdated={lastUpdated}
+            loading={loading}
+            error={error}
+            onRefresh={refresh}
+          />
+        }
+      >
         <Route
           index
           element={
             <DataGate data={result} loading={loading} error={error}>
-              {(r) => r.kind === "default" && <Home data={r.data} />}
+              {(r) =>
+                selectedTab
+                  ? r.kind === "tab" && (
+                      <Minimal rows={r.rows} title={r.tab} subtitle={`Vista mínima · hoja "${r.tab}"`} />
+                    )
+                  : r.kind === "default" && <Home data={r.data} />
+              }
             </DataGate>
           }
         />

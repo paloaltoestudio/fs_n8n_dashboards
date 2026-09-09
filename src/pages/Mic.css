@@ -72,6 +72,21 @@
   border-color: var(--series-blue);
 }
 
+.mic__select {
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 7px 12px;
+  font-size: 12px;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.mic__select:focus {
+  outline: none;
+  border-color: var(--series-blue);
+}
+
 .mic__download {
   background: var(--surface-raised);
   border: 1px solid var(--border);

@@ -1,14 +1,19 @@
 import { NavLink, Outlet } from "react-router-dom";
+import { TabSelector } from "./TabSelector";
+import { EnvSelector, type Env } from "./EnvSelector";
 import "./Layout.css";
 
 interface LayoutProps {
+  tabs: string[];
+  currentTab?: string | null;
+  currentEnv: Env;
   lastUpdated: Date | null;
   loading: boolean;
   error: string | null;
   onRefresh: () => void;
 }
 
-export function Layout({ lastUpdated, loading, error, onRefresh }: LayoutProps) {
+export function Layout({ tabs, currentTab = null, currentEnv, lastUpdated, loading, error, onRefresh }: LayoutProps) {
   return (
     <div className="shell">
       <header className="shell__topbar">
@@ -24,12 +29,12 @@ export function Layout({ lastUpdated, loading, error, onRefresh }: LayoutProps) 
           <NavLink to="/" end className={({ isActive }) => (isActive ? "active" : "")}>
             Overview
           </NavLink>
-          <NavLink to="/mic" className={({ isActive }) => (isActive ? "active" : "")}>
-            MIC &middot; Firma Digital
-          </NavLink>
+          {/* Hidden for now — route at /mic still works, just not linked from nav. */}
         </nav>
 
         <div className="shell__status">
+          <EnvSelector currentEnv={currentEnv} />
+          <TabSelector tabs={tabs} currentTab={currentTab} />
           {error ? (
             <span className="shell__pulse shell__pulse--error" title={error}>
               Sin conexión

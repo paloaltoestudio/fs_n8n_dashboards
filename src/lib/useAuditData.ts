@@ -1,35 +1,33 @@
 import { useCallback } from "react";
-import { fetchAuditData, fetchClientRows } from "../api/client";
+import { fetchAuditData, fetchTabNames, fetchTabRows } from "../api/client";
 import type { AuditData, MicRow } from "../api/types";
-import { getClient } from "./clients";
+import type { Env } from "../components/EnvSelector";
 import { usePolling, type PolledState } from "./usePolling";
 
 export type DashboardResult =
   | { kind: "default"; data: AuditData }
-  | { kind: "client"; label: string; rows: MicRow[] };
+  | { kind: "tab"; tab: string; rows: MicRow[] };
 
 /**
- * Single polling hook for the whole app: resolves `clienteSlug` against the
- * client registry and fetches the right dataset, so callers never run two
- * competing pollers just to decide which one they actually need. An
- * unrecognized `clienteSlug` surfaces as an error rather than silently
- * falling back to the default dataset.
+ * Single polling hook for the whole app: with no tab selected, fetches the
+ * default combined MIC + waba_quality_checks dashboard; with one selected,
+ * fetches just that tab's rows. Avoids running two competing pollers.
  */
-export function useDashboardData(clienteSlug: string | null): PolledState<DashboardResult> {
-  const client = getClient(clienteSlug);
-  const unknownClient = clienteSlug !== null && !client;
-
+export function useDashboardData(selectedTab: string | null, env: Env): PolledState<DashboardResult> {
   const fetcher = useCallback(async (): Promise<DashboardResult> => {
-    if (unknownClient) {
-      throw new Error(`Cliente desconocido: "${clienteSlug}".`);
+    if (selectedTab) {
+      const rows = await fetchTabRows(selectedTab, env);
+      return { kind: "tab", tab: selectedTab, rows };
     }
-    if (client) {
-      const rows = await fetchClientRows(client.slug, client.dataKey);
-      return { kind: "client", label: client.label, rows };
-    }
-    const data = await fetchAuditData();
+    const data = await fetchAuditData(env);
     return { kind: "default", data };
-  }, [client, unknownClient, clienteSlug]);
+  }, [selectedTab, env]);
 
+  return usePolling(fetcher);
+}
+
+/** The live list of spreadsheet tabs, for the picker — no hardcoded registry. */
+export function useTabList(env: Env): PolledState<string[]> {
+  const fetcher = useCallback(() => fetchTabNames(env), [env]);
   return usePolling(fetcher);
 }

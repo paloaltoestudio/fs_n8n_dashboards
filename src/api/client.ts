@@ -1,4 +1,5 @@
 import type { AuditData, MicRow } from "./types";
+import type { Env } from "../components/EnvSelector";
 
 // Calls our own Netlify Function, never n8n directly — the n8n API key
 // stays server-side and never reaches the browser bundle.
@@ -6,9 +7,13 @@ const PROXY_PATH = "/api/audit-data";
 
 export class AuditApiError extends Error {}
 
-async function fetchProxyJson(clienteSlug?: string): Promise<unknown> {
-  const qs = clienteSlug ? `?cliente=${encodeURIComponent(clienteSlug)}` : "";
-  const res = await fetch(`${PROXY_PATH}${qs}`);
+async function fetchProxyJson(params: Record<string, string | undefined>): Promise<unknown> {
+  const qs = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value) qs.set(key, value);
+  }
+  const query = qs.toString();
+  const res = await fetch(`${PROXY_PATH}${query ? `?${query}` : ""}`);
 
   const text = await res.text();
 
@@ -24,8 +29,8 @@ async function fetchProxyJson(clienteSlug?: string): Promise<unknown> {
   return Array.isArray(body) ? body[0] : body;
 }
 
-export async function fetchAuditData(): Promise<AuditData> {
-  const data = await fetchProxyJson();
+export async function fetchAuditData(env: Env): Promise<AuditData> {
+  const data = await fetchProxyJson({ env });
 
   if (!data || typeof data !== "object" || !("MIC" in data)) {
     throw new AuditApiError("Unexpected response shape from the audit data proxy.");
@@ -34,13 +39,25 @@ export async function fetchAuditData(): Promise<AuditData> {
   return data as AuditData;
 }
 
-/** Fetches a single client's rows (e.g. cryogas) by its webhook's response key. */
-export async function fetchClientRows(clienteSlug: string, dataKey: string): Promise<MicRow[]> {
-  const data = await fetchProxyJson(clienteSlug);
-  const rows = data && typeof data === "object" ? (data as Record<string, unknown>)[dataKey] : undefined;
+/** Lists every tab currently in the spreadsheet, so the picker never needs a hardcoded registry. */
+export async function fetchTabNames(env: Env): Promise<string[]> {
+  const data = await fetchProxyJson({ list: "1", env });
+  const tabs = data && typeof data === "object" ? (data as Record<string, unknown>).tabs : undefined;
+
+  if (!Array.isArray(tabs)) {
+    throw new AuditApiError('Expected a "tabs" array in the response.');
+  }
+
+  return tabs as string[];
+}
+
+/** Fetches one tab's raw rows by name. */
+export async function fetchTabRows(tab: string, env: Env): Promise<MicRow[]> {
+  const data = await fetchProxyJson({ tab, env });
+  const rows = data && typeof data === "object" ? (data as Record<string, unknown>).rows : undefined;
 
   if (!Array.isArray(rows)) {
-    throw new AuditApiError(`Expected a "${dataKey}" array in the response for cliente="${clienteSlug}".`);
+    throw new AuditApiError(`Expected a "rows" array in the response for tab="${tab}".`);
   }
 
   return rows as MicRow[];

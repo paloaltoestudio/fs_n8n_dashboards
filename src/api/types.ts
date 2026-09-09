@@ -5,6 +5,8 @@ export interface MicRow {
   api_process_id: string;
   error: string;
   timestamp: string;
+  /** Optional run/batch identifier (e.g. "20260906"). Google Sheets may return this as a number; absent on older rows logged before this column existed. */
+  execution?: string | number;
 }
 
 export interface WabaQualityRow {

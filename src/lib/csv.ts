@@ -1,6 +1,7 @@
 import type { MicRow } from "../api/types";
 import { humanizeError } from "./errorMessage";
 import { formatDateTime } from "./format";
+import { normalizeExecution } from "./mic";
 
 function escapeCsvField(value: string): string {
   if (/[",\n]/.test(value)) {
@@ -29,13 +30,14 @@ function downloadCsv(filename: string, content: string): void {
 
 /** Exports MIC-shaped rows (MIC, logs, or any per-client dataset) as a CSV download. */
 export function exportRowsToCsv(filenamePrefix: string, rows: MicRow[]): void {
-  const headers = ["process_id", "estado", "error", "error_resumen", "api_process_id", "fecha"];
+  const headers = ["process_id", "estado", "error", "error_resumen", "api_process_id", "execution", "fecha"];
   const csvRows = rows.map((row) => [
     row.process_id,
     row.success ? "Exitoso" : "Fallido",
     row.error ?? "",
     humanizeError(row.error),
     row.api_process_id ?? "",
+    normalizeExecution(row.execution),
     formatDateTime(row.timestamp),
   ]);
 
