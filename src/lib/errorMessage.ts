@@ -6,6 +6,26 @@ function tryParseJSON(input: string): unknown {
   }
 }
 
+/**
+ * Unwraps the `"<status> - \"<json>\""` pattern (e.g. `500 - "{...}"`) that
+ * n8n's HTTP error messages come in, regardless of whether it's the raw
+ * string on its own (new logging) or nested inside an outer `.message`
+ * field (old logging, still present on older sheet rows).
+ */
+function extractNestedApiError(text: string): { status: string; obj: Record<string, unknown> } | undefined {
+  const match = text.match(/^(\d+)\s*-\s*(".*")$/s);
+  if (!match) return undefined;
+
+  const innerString = tryParseJSON(match[2]);
+  if (typeof innerString !== "string") return undefined;
+
+  const innerObj = tryParseJSON(innerString);
+  if (innerObj && typeof innerObj === "object") {
+    return { status: match[1], obj: innerObj as Record<string, unknown> };
+  }
+  return undefined;
+}
+
 /** Flattens an ASP.NET-style validation `errors` object into "field: message; field: message". */
 function summarizeValidationErrors(errors: unknown): string | undefined {
   if (!errors || typeof errors !== "object") return undefined;
@@ -41,12 +61,12 @@ function summarizeInnerError(innerObj: Record<string, unknown>): string | undefi
 /**
  * Turns raw n8n error strings into a short, human-readable message.
  *
- * Handles three shapes, each falling back to the next if it doesn't match:
- * 1. Plain text (e.g. phone validation errors) — returned as-is.
- * 2. An AxiosError JSON blob whose `.message` is `"<status> - \"<json>\""`,
- *    where the nested JSON exposes `detail`, a validation `errors` object,
- *    or a `title` (checked in that order) — returns `"<status> · <summary>"`.
- * 3. Any other JSON object with a `.message` field — returns that message.
+ * Handles these shapes, each falling back to the next if it doesn't match:
+ * 1. The bare `"<status> - \"<json>\""` pattern (current logging) — unwrapped
+ *    directly, picking `detail`/validation `errors`/`title` off the nested JSON.
+ * 2. The same pattern nested inside an outer `{"message": "...", ...}` object
+ *    (older sheet rows, from before the logging expression was fixed).
+ * 3. Plain text (e.g. phone validation errors) — returned as-is.
  *
  * The original raw string is never discarded by the caller; this only
  * produces the short summary text, callers should keep `raw` around (e.g.
@@ -57,32 +77,26 @@ export function humanizeError(raw: string | undefined | null): string {
   const trimmed = raw.trim();
   if (!trimmed) return "";
 
+  const direct = extractNestedApiError(trimmed);
+  if (direct) {
+    const summary = summarizeInnerError(direct.obj);
+    if (summary) return `${direct.status} · ${summary}`;
+  }
+
   const outer = tryParseJSON(trimmed);
-  if (!outer || typeof outer !== "object") {
-    return trimmed;
-  }
-
-  const message = (outer as Record<string, unknown>).message;
-  if (typeof message !== "string") {
-    return trimmed;
-  }
-
-  const nestedMatch = message.match(/^(\d+)\s*-\s*(".*")$/s);
-  if (nestedMatch) {
-    const [, status, quotedJson] = nestedMatch;
-    const innerString = tryParseJSON(quotedJson);
-    if (typeof innerString === "string") {
-      const innerObj = tryParseJSON(innerString);
-      if (innerObj && typeof innerObj === "object") {
-        const summary = summarizeInnerError(innerObj as Record<string, unknown>);
-        if (summary) {
-          return `${status} · ${summary}`;
-        }
+  if (outer && typeof outer === "object") {
+    const message = (outer as Record<string, unknown>).message;
+    if (typeof message === "string") {
+      const nested = extractNestedApiError(message);
+      if (nested) {
+        const summary = summarizeInnerError(nested.obj);
+        if (summary) return `${nested.status} · ${summary}`;
       }
+      return message;
     }
   }
 
-  return message;
+  return trimmed;
 }
 
 /**
@@ -97,21 +111,16 @@ export function prettyPrintError(raw: string | undefined | null): string {
   const trimmed = raw.trim();
   if (!trimmed) return "";
 
+  const direct = extractNestedApiError(trimmed);
+  if (direct) return JSON.stringify(direct.obj, null, 2);
+
   const outer = tryParseJSON(trimmed);
   if (!outer || typeof outer !== "object") return trimmed;
 
   const message = (outer as Record<string, unknown>).message;
   if (typeof message === "string") {
-    const nestedMatch = message.match(/^(\d+)\s*-\s*(".*")$/s);
-    if (nestedMatch) {
-      const innerString = tryParseJSON(nestedMatch[2]);
-      if (typeof innerString === "string") {
-        const innerObj = tryParseJSON(innerString);
-        if (innerObj && typeof innerObj === "object") {
-          return JSON.stringify(innerObj, null, 2);
-        }
-      }
-    }
+    const nested = extractNestedApiError(message);
+    if (nested) return JSON.stringify(nested.obj, null, 2);
   }
 
   // No nested API error found — pretty-print the outer object, dropping the
