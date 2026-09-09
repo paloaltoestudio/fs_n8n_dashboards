@@ -6,8 +6,16 @@ const N8N_URL = process.env.N8N_URL;
 const N8N_API_KEY = process.env.N8N_API_KEY;
 const N8N_API_KEY_HEADER = process.env.N8N_API_KEY_HEADER || "X-Api-Key";
 
-// Audit data must always be fresh — never let Netlify's CDN cache this response.
-const NO_STORE_HEADERS = { "Cache-Control": "no-store" };
+// Audit data must always be fresh — never let this be cached.
+// `Cache-Control` only governs the browser; Netlify's own edge/Durable cache
+// listens to `Netlify-CDN-Cache-Control` specifically, so both are needed —
+// without the second one, Netlify's CDN can (and did) cache this regardless
+// of the browser-facing header, serving a stale response to every client and
+// query string alike without ever re-invoking this function.
+const NO_STORE_HEADERS = {
+  "Cache-Control": "no-store",
+  "Netlify-CDN-Cache-Control": "no-store",
+};
 
 export default async (req: Request, _context: Context) => {
   if (!N8N_URL) {
