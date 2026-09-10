@@ -59,7 +59,9 @@ function summarizeInnerError(innerObj: Record<string, unknown>): string | undefi
 }
 
 /**
- * Turns raw n8n error strings into a short, human-readable message.
+ * Turns raw n8n error strings into a short, human-readable message — just the
+ * `detail` (or validation `errors`/`title` if that's all that's available),
+ * with no status code or JSON noise.
  *
  * Handles these shapes, each falling back to the next if it doesn't match:
  * 1. The bare `"<status> - \"<json>\""` pattern (current logging) — unwrapped
@@ -80,7 +82,7 @@ export function humanizeError(raw: string | undefined | null): string {
   const direct = extractNestedApiError(trimmed);
   if (direct) {
     const summary = summarizeInnerError(direct.obj);
-    if (summary) return `${direct.status} · ${summary}`;
+    if (summary) return summary;
   }
 
   const outer = tryParseJSON(trimmed);
@@ -90,7 +92,7 @@ export function humanizeError(raw: string | undefined | null): string {
       const nested = extractNestedApiError(message);
       if (nested) {
         const summary = summarizeInnerError(nested.obj);
-        if (summary) return `${nested.status} · ${summary}`;
+        if (summary) return summary;
       }
       return message;
     }
