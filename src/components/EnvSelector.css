@@ -18,15 +18,15 @@
   border-color: var(--series-blue);
 }
 
-/* Prod gets a visually distinct, slightly alarming treatment on purpose —
-   nobody should be able to glance at the topbar and mistake it for test. */
+/* Prod gets a visually distinct treatment on purpose — nobody should be able
+   to glance at the topbar and mistake it for test. */
 .env-selector--prod {
-  background: var(--status-critical-bg);
-  border: 1px solid var(--status-critical);
-  color: var(--status-critical);
+  background: var(--status-good-bg);
+  border: 1px solid var(--status-good);
+  color: var(--status-good);
 }
 
 .env-selector--prod:focus {
   outline: none;
-  border-color: var(--status-critical);
+  border-color: var(--status-good);
 }
